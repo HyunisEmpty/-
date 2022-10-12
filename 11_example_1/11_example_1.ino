@@ -11,7 +11,7 @@
 #define INTERVAL 25      // sampling interval (unit: msec)
 #define PULSE_DURATION 10 // ultra-sound Pulse Duration (unit: usec)
 #define _DIST_MIN 100.0   // minimum distance to be measured (unit: mm)
-#define _DIST_MAX 300.0   // maximum distance to be measured (unit: mm)
+#define _DIST_MAX 440.0   // maximum distance to be measured (unit: mm)
 
 #define TIMEOUT ((INTERVAL / 2) * 1000.0) // maximum echo waiting time (unit: usec)
 #define SCALE (0.001 * 0.5 * SND_VEL) // coefficent to convert duration to distance
@@ -21,18 +21,19 @@
 
 // Target Distance
 #define _TARGET_LOW  180.0
-#define _TARGET_HIGH 220.0
+#define _TARGET_HIGH 360.0
 
 // duty duration for myservo.writeMicroseconds()
 // NEEDS TUNING (servo by servo)
  
-#define _DUTY_MIN 1000 // servo full clockwise position (0 degree)
+#define _DUTY_MIN 700 // servo full clockwise position (0 degree)
 #define _DUTY_NEU 1500 // servo neutral position (90 degree)
-#define _DUTY_MAX 2000 // servo full counterclockwise position (180 degree)
+#define _DUTY_MAX 2300 // servo full counterclockwise position (180 degree)
 
 // global variables
 float  dist_ema, dist_prev = _DIST_MAX; // unit: mm
 unsigned long last_sampling_time; // unit: ms
+float alpha = 0.4;
 
 Servo myservo;
 
@@ -74,19 +75,27 @@ void loop() {
   }
 
   // Apply ema filter here  
-  dist_ema = dist_raw;
+  dist_ema = alpha * dist_raw + (1 - alpha) * dist_ema;
 
   // adjust servo position according to the USS read value
 
   // add your code here!
+  if( dist_raw <= _TARGET_LOW ){
+      myservo.writeMicroseconds(_DUTY_MIN);
+  }
+  else if ( dist_raw >= _TARGET_HIGH){
+      myservo.writeMicroseconds(_DUTY_MAX);
+  }
+  else{
+      myservo.writeMicroseconds(((_DUTY_MAX - _DUTY_MIN)/180)*(dist_ema - _DIST_MIN));
+  }
   // Use _TARGET_LOW, _TARGTE_HIGH
 
   // output the distance to the serial port
   Serial.print("Min:");    Serial.print(_DIST_MIN);
-  Serial.print(",Low:");   Serial.print(_TARGET_LOW);
   Serial.print(",dist:");  Serial.print(dist_raw);
+  Serial.print(",ema:");  Serial.print(dist_ema);  
   Serial.print(",Servo:"); Serial.print(myservo.read());  
-  Serial.print(",High:");  Serial.print(_TARGET_HIGH);
   Serial.print(",Max:");   Serial.print(_DIST_MAX);
   Serial.println("");
  
