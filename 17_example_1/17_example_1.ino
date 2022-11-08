@@ -5,17 +5,18 @@
 #define PIN_LED 9           // 핀 9번 LED 정의 
 #define PIN_SERVO 10
 
-#define _DUTY_MIN 553  // servo full clock-wise position (0 degree)
-#define _DUTY_NEU 1476 // servo neutral position (90 degree)
-#define _DUTY_MAX 2399 // servo full counter-clockwise position (180 degree)
+#define _DUTY_MIN 500  // servo full clock-wise position (0 degree)
+#define _DUTY_NEU 1600 // servo neutral position (90 degree)
+#define _DUTY_MAX 2700 // servo full counter-clockwise position (180 degree)
 
 #define _DIST_MIN 100.0   // 최소거리 정의
 #define _DIST_MAX 250.0   // 최대거리 정의
 #define _EMA_ALPHA 0.5    // EMA 필터 알파값 정의
 
-#define LOOP_INTERVAL 50  // Loop Interval (unit: msec)
+#define LOOP_INTERVAL 20  // Loop Interval (unit: msec)
 float dist_prev = _DIST_MAX;
 float dist_ema;
+
 
 Servo myservo;
 unsigned long last_loop_time;   // unit: msec
@@ -23,7 +24,7 @@ unsigned long last_loop_time;   // unit: msec
 void setup()
 {
   myservo.attach(PIN_SERVO); 
-  myservo.writeMicroseconds(_DUTY_NEU);
+  myservo.writeMicroseconds((_DUTY_MAX + _DUTY_MIN)/2);
   
   Serial.begin(57600);
 }
@@ -69,14 +70,10 @@ void loop()
     myservo.writeMicroseconds(_DUTY_MAX); // LED OFF
   } else {
     digitalWrite(PIN_LED, 0);
-    duty = 1846/150 * (dist - 100) + 533;
+    duty = (_DUTY_MAX - _DUTY_MIN)/150 * (dist - 100) + _DUTY_MIN;
     myservo.writeMicroseconds(duty);
   }
   
-
-  // map distance into duty
-  duty = map(a_value, 0, 1023, _DUTY_MIN, _DUTY_MAX);
-  myservo.writeMicroseconds(duty);
 
   // print IR sensor value, distnace, duty !!!
   Serial.print("MIN:"); Serial.print(_DIST_MIN);
