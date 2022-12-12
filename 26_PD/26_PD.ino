@@ -22,8 +22,8 @@
 #define _SERVO_SPEED 200 // servo speed limit (unit: degree/second)
 
 // PID parameters
-#define _KP 2.7 // proportional gain
-#define _KD 170 // derivative gain
+#define _KP 2.2 // proportional gain
+#define _KD 155 // 170,n = 50  derivative gain
 //#define _KI 0 // integral gain
 
 // global variables
@@ -85,7 +85,7 @@ void loop()
     event_dist = false;
     
     // Get a distance reading from the distance sensor
-    dist_filtered = volt_to_distance(ir_sensor_filtered(10, 0.5));
+    dist_filtered = volt_to_distance(ir_sensor_filtered(50, 0.5));
     dist_ema = _EMA_ALPHA * dist_ema + (1.0 - _EMA_ALPHA) * dist_filtered;
 
     // Update PID control variables
